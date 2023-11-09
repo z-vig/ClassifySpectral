@@ -2,7 +2,6 @@ module ClassifySpectral
 export ImageUtils
 
 include("ImageUtils.jl")
-
-changetest() = print("Hello World!!!")
+include("ImageSmoothing.jl")
 
 end # module ClassifySpectral
