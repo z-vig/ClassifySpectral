@@ -1,7 +1,6 @@
 @time begin
     using ClassifySpectral
     using Plots
-    plotlyjs()
     using JLD
     
     #img = ImageUtils.singletif("C:/Data/rfl_cropped/m3t20090418t020644.tif","im_data1")
@@ -25,9 +24,15 @@
     X = 27
     Y = 54
 
-    p1 = plot(img[X,Y,:])
-    p2 = scatter(rfl1[1:1000],rfl2[1:1000])
-    plot(p1,p2,layout=(2,1))
+    smoothed_im,smoothed_λvector = ClassifySpectral.ImageSmoothing.movingavg(img,λvector,9)
+
+    println(size(smoothed_im),size(smoothed_λvector))
+
+    plot(λvector,img[X,Y,:],label="Raw")
+    plot!(smoothed_λvector,smoothed_im[X,Y,:],label="Smooth")
+
+    # println(smoothed_im[X,Y,:])
+
     #plot(rfl1[1:10000],rfl2[1:10000],seriestype=:scatter,label="Reflectance Data")
 
     end #time end
