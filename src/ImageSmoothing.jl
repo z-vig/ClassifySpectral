@@ -16,11 +16,17 @@ function movingavg(input_image::AbstractArray,input_λvector::Vector{Float64},bo
         subset_img = input_image[:,:,band:band+(2*split_index)]
         av_subset = mean(subset_img,dims=3)
         sd_subset = std(subset_img,dims=3)
-        upperlim_subset = av_subset.+(2*sd_im)
-        lowerlim_subset = av_subset.-(2*sd_im)
-        wise_subset = subset_img[]
+        upperlim_subset = av_subset.+(2*sd_subset)
+        lowerlim_subset = av_subset.-(2*sd_subset)
 
-        avg_im[:,:,band] = 
+        
+        subset_img[(subset_img.<lowerlim_subset).||(subset_img.>upperlim_subset)].=0.0
+        wiseav_missingvals = convert(Array{Union{Float64,Missing}},subset_img)
+        wiseav_missingvals[wiseav_missingvals.==0.0].=missing
+
+        wiseav_denom = size(wiseav_missingvals)[3].-sum(ismissing.(wiseav_missingvals),dims=3)
+
+        avg_im[:,:,band] = sum(subset_img,dims=3)./wiseav_denom
 
         #println("$(avg_im[20,20,band])...$band")
     end

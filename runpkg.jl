@@ -2,6 +2,8 @@
     using ClassifySpectral
     using Plots
     using JLD
+    using FileIO
+    using Images
     
     #img = ImageUtils.singletif("C:/Data/rfl_cropped/m3t20090418t020644.tif","im_data1")
     #ImageUtils.labelλ(img,"C:/Data/m3t20090418t020644_v01_rfl.img.vrt")
@@ -26,13 +28,23 @@
 
     smoothed_im,smoothed_λvector = ClassifySpectral.ImageSmoothing.movingavg(img,λvector,9)
 
-    println(size(smoothed_im),size(smoothed_λvector))
+    file = open("./smoohted_wvl_data.txt","w")
+    for λ in smoothed_λvector
+        write(file,"$λ\n")
+    end
+    close(file)
+
+    println(size(smoothed_im))
 
     plot(λvector,img[X,Y,:],label="Raw")
     plot!(smoothed_λvector,smoothed_im[X,Y,:],label="Smooth")
 
+    smooth_im_save = Gray.(smoothed_im)
+    
+    #save("Data/smooth_im1.tif",smooth_im_save)
+
     # println(smoothed_im[X,Y,:])
 
-    #plot(rfl1[1:10000],rfl2[1:10000],seriestype=:scatter,label="Reflectance Data")
+    plot(rfl1[1:10000],rfl2[1:10000],seriestype=:scatter,label="Reflectance Data")
 
     end #time end

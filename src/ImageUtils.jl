@@ -45,5 +45,11 @@ function findλ(target_val::Float64,arrayin::Vector{Float64})
 return min_index, arrayin[min_index]
 end
 
+function getλ(txtpath::String)
+    file = open(txtpath,"r")
+    λvector = parse.(Float64,readlines(file))
+    close(file)
+    return λvector
+end
 
 end #module LoadImages
