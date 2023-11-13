@@ -26,6 +26,7 @@
     X = 27
     Y = 54
 
+    println("Smoothing...")
     smoothed_im,smoothed_λvector = ClassifySpectral.ImageSmoothing.movingavg(img,λvector,9)
 
     file = open("./smoohted_wvl_data.txt","w")
@@ -45,6 +46,6 @@
 
     # println(smoothed_im[X,Y,:])
 
-    plot(rfl1[1:10000],rfl2[1:10000],seriestype=:scatter,label="Reflectance Data")
+    #plot(rfl1[1:10000],rfl2[1:10000],seriestype=:scatter,label="Reflectance Data")
 
     end #time end
