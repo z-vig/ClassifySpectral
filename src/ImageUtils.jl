@@ -4,15 +4,39 @@ module ImageUtils
 using Images
 using Gumbo
 using AbstractTrees
-using JLD
+using JLD2
+using ProgressMeter
+
+function dataloadin(folder_path::String)
+    imgpaths = readdir(folder_path,join=true)
+    imgnames = [i[1:end-4] for i ∈ readdir(folder_path)]
+    all_data::Array{Array{Float32,3}} = []
+    p = Progress(length(imgpaths);desc="Loading TIFF Data...")
+    for i ∈ eachindex(imgpaths)
+        push!(all_data,load(imgpaths[i])["data"])
+        next!(p)
+    end
+    return all_data[2]
+end
+
+function savejld2(folder_path)
+    imgpaths = readdir(folder_path,join=true)
+    imgnames = [i[4:end-16] for i ∈ readdir(folder_path)]
+
+    p = Progress(length(imgpaths);desc="Saving TIFF Data as JLD2")
+    for i ∈ eachindex(imgpaths)
+        img = ImageUtils.singletif(imgpaths[i],imgnames[i])
+        next!(p)
+    end
+end
 
 function singletif(impath::String,imname::String)
     img = load(impath)
     img = permutedims(img,(3,1,2))
-    img = Float64.(img)
-    good_indices = findall(x->x==1,img[20,20,:].>-999);
+    img = Float32.(img)
+    good_indices = findall(x->x==1,img[10,10,:].>-999);
     img = img[:,:,good_indices]
-    save("$imname.jld","data",img)
+    save("D:/ice_data_sample/obs_cropped_jld2/$imname.jld2","data",img)
     return img
 end
 

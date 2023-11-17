@@ -6,7 +6,6 @@ using Images, ImageView
 using Statistics
 using LinearAlgebra
 using ClassifySpectral
-using JLD
 
 
 # test_im = load("Data/im_data1.jld")["data"]
