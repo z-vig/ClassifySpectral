@@ -3,6 +3,7 @@ export ImageUtils,run_PCA,ParamImage
 
 using Statistics
 using MultivariateStats
+using Clustering
 
 include("ImageUtils.jl")
 include("ImageSmoothing.jl")
@@ -30,9 +31,9 @@ function run_PCA(data_matrix::Array{Float32},imshape::Tuple)
     return Cₓ,P,Cᵥ,Y
 end
 
-function run_kmeans(data_matrix::Array{Float32})
+function run_kmeans(data_matrix::Array{Float32},k::Int64)
 
-    result = kmeans(data_matrix)
+    result = kmeans(data_matrix,k)
 
 end
 
