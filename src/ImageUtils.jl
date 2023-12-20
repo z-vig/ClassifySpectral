@@ -5,7 +5,8 @@ using Images
 using Gumbo
 using AbstractTrees
 using JLD2
-using ProgressMeter
+using HDF5
+using ProgressBars
 
 function dataloadin(folder_path::String)
     imgpaths = readdir(folder_path,join=true)
@@ -74,6 +75,24 @@ function getλ(txtpath::String)
     λvector = parse.(Float64,readlines(file))
     close(file)
     return λvector
+end
+
+function tifdir2hdf5(srcdir::String,dstdir::String)
+    f_list = readdir(srcdir,join=true)
+    stamp_ids = [i[1:end-4] for i ∈ readdir(srcdir,join=false)]
+    iter = ProgressBar(1:length(f_list))
+
+    h5file = h5open("$(dstdir)1.hdf5","w")
+
+    for i ∈ iter
+        tif = load(f_list[i])
+        tif = permutedims(tif,(1,3,2))
+        tif = convert(Array{Float32},tif)
+        println(iter,typeof(tif))
+        h5file[stamp_ids[i]] = tif
+    end
+
+    close(h5file)
 end
 
 end #module LoadImages
