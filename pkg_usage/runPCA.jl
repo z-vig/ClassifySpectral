@@ -3,15 +3,15 @@
 @time begin
 using Plots
 using Images, ImageView
+using TiffImages
 using Statistics
 using LinearAlgebra
 using ClassifySpectral
-using TiffImages
 
 # test_im = load("Data/im_data1.jld")["data"]
 
-test_im = TiffImages.load("Data/gruit.tif")
-#println(size(test_im))
+test_im = TiffImages.load("Data/smooth_im1.tif")
+println(size(test_im))
 #test_im_array = permutedims(test_im,(3,1,2))
 test_im_array = Float64.(test_im)
 #println(size(test_im_array))
@@ -25,14 +25,13 @@ for i ∈ eachindex(test_im_array[1,1,:])
 end
 @info size(data_matrix)
 
-
 Cₓ,P,Cᵥ,Y = ClassifySpectral.run_PCA(data_matrix,size(test_im_array))
 jld_dict = Dict("Cx"=>Cₓ,"P"=>P,"Cv"=>Cᵥ,"Y"=>Y,"data_matrix"=>data_matrix)
 save("Data/PCA_results/gruit_gamma.jld2",jld_dict)
 
 Y = reshape(transpose(Y),size(test_im_array))
-# imshow(test_im_array)
-# imshow(Gray.(Y))
+imshow(test_im_array)
+imshow(Gray.(Y))
 # imshow(abs.(Cₓ))
 #save("C:/Users/zvig/Desktop/python_code/M3_Gruithuisen_Region/Data Products/PC2.tif",Gray.(Y_image))
 
@@ -75,6 +74,6 @@ ylabel!("PC2")
 #savefig("G:/My Drive/PC1_PC2_PC3_smooth.png")
 display(p4)
 
-#display(Y)
+display(Y)
 
 end #time

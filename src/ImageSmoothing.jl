@@ -3,7 +3,7 @@ module ImageSmoothing
 
 using Statistics
 
-function movingavg(input_image::AbstractArray,input_λvector::Vector{Float64},box_size::Int)
+function movingavg(input_image::Array{Float32,3},input_λvector::Vector{Float64},box_size::Int)
     if box_size%2==0
         throw(DomainError(box_size,"Box Size must be odd!"))
     end
@@ -27,7 +27,7 @@ function movingavg(input_image::AbstractArray,input_λvector::Vector{Float64},bo
         wiseav_denom = size(wiseav_missingvals)[3].-sum(ismissing.(wiseav_missingvals),dims=3)
 
         avg_im[:,:,band] = sum(subset_img,dims=3)./wiseav_denom
-
+        avg_im = convert(Array{Float32},avg_im)
         #println("$(avg_im[20,20,band])...$band")
     end
 

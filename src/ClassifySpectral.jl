@@ -26,10 +26,9 @@ function run_PCA(data_matrix::Array{Float64},imshape::Tuple)
     Cᵥ = diagm(vec(eigvals(Cₓ)[end:-1:1]))
     #Cᵥ = transpose(P)*Cₓ*P
     Y = P*transpose(data_matrix)
-
     @info P[1:10,1:10]
     @info transpose(data_matrix)[1:10,1:10]
-    @info Y[1:10,1:10]
+    @info Y[1:10]
 
     #Y = reshape(transpose(Y),imshape)
 
