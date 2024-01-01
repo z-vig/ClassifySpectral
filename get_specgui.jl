@@ -3,6 +3,7 @@
 
 using ClassifySpectral
 using HDF5
+using Distances
 using GLMakie
 
 function convert_tifs()
@@ -14,38 +15,36 @@ function convert_tifs()
 
 end
 
-function build_specgui()
-    h5file = h5open("Data/gd_region.hdf5","r")
-    arr = read(h5file[keys(h5file)[1]])
-    close(h5file)
+function run_ui(h5path,index)
+    h5file = h5open(h5path,"r")
+    arr = read(h5file[keys(h5file)[index]])
+    arr = arr[:,end:-1:1,:]
 
+    wvl_str = readlines(open("wvl_data.txt"))
+    wvl = map(x->parse(Float64,x),wvl_str)
 
-
-    f = Figure(size=(400,450))
-    ax = Axis(f[1,1])
-    hidedecorations!(ax)
-    ax.title = "Gruithuisen Gamma"
-    sl_exp = Slider(f[2,1],range=0:0.001:1,startvalue=0.5)
-
-    cstretch = @lift((0,$(sl_exp.value)))
-    image!(ax,arr[:,end:-1:1,1],xticks=[],colorrange=cstretch)
-
-    f
+    ImageUtils.build_specgui(arr,wvl)
 end
 
-function test_makie()
-    f = Figure(size=())
+function run_kmeans(h5path,index)
+    h5file = h5open(h5path,"r")
+    arr = read(h5file[keys(h5file)[index]])
+    arr = arr[:,end:-1:1,:]
+
+    wvl_str = readlines(open("wvl_data.txt"))
+    wvl = map(x->parse(Float64,x),wvl_str)
+
+    smooth_arr,smooth_λ = ClassifySpectral.ImageSmoothing.movingavg(arr,wvl,9)
+    println(findall(isnan.(smooth_arr)))
+
+    f = Figure()
     ax = Axis(f[1,1])
-    x = range(0,10,100)
-    y = sin.(x)
-    scatter!(ax,x,y,
-    color = :red,
-    )
+    image!(ax,smooth_arr[:,:,1])
     f
+    #ImageUtils.build_specgui(smooth_arr,wvl)
 end
 
-#convert_tifs()
-build_specgui()
-#test_makie()
+run_kmeans("Data/gd_region.hdf5",1)
+#run_ui("Data/gd_region.hdf5",2)
 
 end #time
