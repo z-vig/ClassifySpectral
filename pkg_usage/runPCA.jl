@@ -13,20 +13,20 @@ using ClassifySpectral
 test_im = TiffImages.load("Data/smooth_im1.tif")
 println(size(test_im))
 #test_im_array = permutedims(test_im,(3,1,2))
-test_im_array = Float64.(test_im)
-#println(size(test_im_array))
+test_im_array = Float32.(test_im)
+println(size(test_im_array))
 
 λvector = ClassifySpectral.ImageUtils.getλ("smoohted_wvl_data.txt")
 pixperband = length(test_im_array[:,:,1])
 numbands = size(test_im_array)[end]
-data_matrix=zeros(Float64,(pixperband,numbands))
+data_matrix=zeros(Float32,(pixperband,numbands))
 for i ∈ eachindex(test_im_array[1,1,:])
     data_matrix[:,i] = vec(test_im_array[:,:,i])
 end
 @info size(data_matrix)
 
 Cₓ,P,Cᵥ,Y = ClassifySpectral.run_PCA(data_matrix,size(test_im_array))
-jld_dict = Dict("Cx"=>Cₓ,"P"=>P,"Cv"=>Cᵥ,"Y"=>Y,"data_matrix"=>data_matrix)
+jld_dict = Dict("Cx"=>Cₓ,"P"=>P,"Cv"=>Cᵥ,"Y"=>Y)
 save("Data/PCA_results/gruit_gamma.jld2",jld_dict)
 
 Y = reshape(transpose(Y),size(test_im_array))
@@ -40,7 +40,7 @@ for i ∈ eachindex(Cₓ[:,1])
     variance_data[i] = Cᵥ[i,i]
 end
 
-# display(Cᵥ)
+display(Cᵥ)
 
 println(
     "Total Variance: $(tr(Cᵥ))
