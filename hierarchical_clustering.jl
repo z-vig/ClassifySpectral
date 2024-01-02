@@ -7,10 +7,12 @@ using StatsBase
 using HDF5
 using ClassifySpectral
 using Statistics
+using Normalization
 
 rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
+normalize(A; dims=1) = (A)
 
-λ =  parse.(Float64,readlines(open("smoohted_wvl_data.txt")))
+λ =  parse.(Float64,readlines(open("smoothed_wvl_data.txt")))
 
 function treepositions(hc::Hclust; useheight = true, orientation = :vertical)
     order = StatsBase.indexmap(hc.order)
@@ -99,7 +101,7 @@ function run_hc(h5path,index)
     # wvl_str = readlines(open("wvl_data.txt"))
     # wvl = map(x->parse(Float64,x),wvl_str)
 
-    wvl_str = readlines(open("smoohted_wvl_data.txt"))
+    wvl_str = readlines(open("smoothed_wvl_data.txt"))
     wvl = map(x->parse(Float64,x),wvl_str)
 
 
@@ -122,12 +124,12 @@ function run_hc(h5path,index)
 
     println("getting distance matrix...")
 
-    subset_ind = sample(eachindex(feats[:,1]),5000,replace=false)
+    subset_ind = sample(eachindex(feats[:,1]),20000,replace=false)
     feats_subset = feats[subset_ind,:]
     println(size(feats_subset))
     subset_coords = coords[subset_ind]
 
-    d = pairwise(CorrDist(),transpose(feats_subset))
+    d = pairwise(Euclidean(),transpose(feats_subset))
 
     clust_result = hclust(d)
 
