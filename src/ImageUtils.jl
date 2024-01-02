@@ -1,4 +1,4 @@
-#LoadImages.jl
+#ImageUtils.jl
 module ImageUtils
 
 using Images
@@ -84,7 +84,7 @@ function tifdir2hdf5(srcdir::String,dstdir::String)
     stamp_ids = [i[1:end-4] for i ∈ readdir(srcdir,join=false)]
     iter = ProgressBar(1:length(f_list))
 
-    h5file = h5open("$(dstdir)1.hdf5","w")
+    h5file = h5open("$(dstdir).hdf5","w")
 
     for i ∈ iter
         tif = load(f_list[i])
@@ -100,17 +100,19 @@ end
 function build_specgui(arr::Array{Float32,3},wvl_vals::Vector{Float64})
     im = arr[:,:,1]
 
-    f = Figure(size=(1000,450))
+    f_image = Figure()
+    ax_im = GLMakie.Axis(f_image[1,1])
+    ax_im.title = "Reflectance Image"
+
+    f = Figure(size=(750,450))
+
     ax1 = GLMakie.Axis(f[1,1])
-    ax1.title = "Gruithuisen Gamma"
 
     ax2 = GLMakie.Axis(f[1,2])
-
-    ax3 = GLMakie.Axis(f[1,3])
     
     histdata = vec(im)
 
-    sl_exp = IntervalSlider(f[2,2],range=range(minimum(histdata),maximum(histdata),100),startvalues=(percentile(histdata,1),percentile(histdata,99)))
+    sl_exp = IntervalSlider(f[2,1],range=range(minimum(histdata),maximum(histdata),100),startvalues=(percentile(histdata,1),percentile(histdata,99)))
 
     imstretch = lift(sl_exp.interval) do inter
         inter
@@ -127,23 +129,24 @@ function build_specgui(arr::Array{Float32,3},wvl_vals::Vector{Float64})
         end
     end
 
-    hist!(ax2,histdata,bins=bin_list,color=clist,colormap=[:transparent,:red],strokewidth=0.1)
-    im = image!(ax1,im,colorrange=imstretch)
+    hist!(ax1,histdata,bins=bin_list,color=clist,colormap=[:transparent,:red],strokewidth=0.1)
+    im = image!(ax_im,im,colorrange=imstretch)
 
-    register_interaction!(ax1,:get_spectra) do event::MouseEvent,axis
+    register_interaction!(ax_im,:get_spectra) do event::MouseEvent,axis
         if event.type==MouseEventTypes.leftclick
             xpos = Int(round(event.data[1]))
             ypos = Int(round(event.data[2]))
             println("X:$xpos, Y:$ypos")
-            lines!(ax3,wvl_vals,arr[xpos,ypos,:])
+            lines!(ax2,wvl_vals,arr[xpos,ypos,:])
         end
     end
 
-    butt = Button(f[2,3],label="Reset",tellwidth=false)
+    butt = Button(f[2,2],label="Reset",tellwidth=false)
     on(butt.clicks) do click
-        empty!(ax3)
+        empty!(ax2)
     end
-    f
+    display(GLMakie.Screen(),f_image)
+    display(GLMakie.Screen(),f)
 end
 
-end #module LoadImages
+end #module ImageUtils

@@ -4,6 +4,7 @@ export ImageUtils,run_PCA,ParamImage
 using Statistics
 using MultivariateStats
 using Clustering
+using LinearAlgebra
 
 include("ImageUtils.jl")
 include("ImageSmoothing.jl")
@@ -17,11 +18,13 @@ function spec_angle(refspec::Vector{Float64})
 end
 
 
-function run_PCA(data_matrix::Array{Float32},imshape::Tuple)
+function run_PCA(data_matrix::Array{Float64},imshape::Tuple)
 
     Cₓ = cov(data_matrix,dims=1,corrected=true)
     P = eigvecs(Cₓ)[:,end:-1:1]
-    Cᵥ = transpose(P)*Cₓ*P
+
+    Cᵥ = diagm(vec(eigvals(Cₓ)[end:-1:1]))
+    #Cᵥ = transpose(P)*Cₓ*P
     Y = P*transpose(data_matrix)
     @info P[1:10,1:10]
     @info transpose(data_matrix)[1:10,1:10]
