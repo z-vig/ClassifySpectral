@@ -46,7 +46,6 @@ function dendrogram(h; color = :blue, kwargs...)
 
     hlines!(ax2,h_tracker,1,maximum(h.order))
 
-
     display(f)
 end
 

@@ -7,10 +7,9 @@ using StatsBase
 using HDF5
 using ClassifySpectral
 using Statistics
-using Normalization
 
 rescale(A; dims=1) = (A .- mean(A, dims=dims)) ./ max.(std(A, dims=dims), eps())
-normalize(A; dims=1) = (A)
+normal(A,dims=1) = (A .- minimum(A))./(maximum(A.-minimum(A)))
 
 λ =  parse.(Float64,readlines(open("smoothed_wvl_data.txt")))
 
@@ -75,6 +74,7 @@ function dendrogram(h, image, feats, coords; color = :blue, kwargs...)
         
         feats_clusters = hcat(feats,cluster_vals)
         println("# of Clusters: $(length(unique_clusters))")
+        
         for i in eachindex(unique_clusters)
             lines!(ax2, λ, vec(mean(feats_clusters[feats_clusters[:,end].==unique_clusters[i],1:end-1],dims=1)),color=i,colormap=:viridis,colorrange=(1,length(unique_clusters)))
         end
@@ -89,6 +89,7 @@ end
 function run_hc(h5path,index)
     h5file = h5open(h5path,"r")
     arr = read(h5file[keys(h5file)[index]])
+    arr = arr[:,end:-1:1,:]
 
     #Eliminating shadey pixels
     mean_arr = mean(arr,dims=3)
@@ -116,6 +117,7 @@ function run_hc(h5path,index)
     feats = feats[findall(feats[:,1].!=-9999),:]
     #Rescaling!
     #feats = rescale(feats,dims=1)
+    feats = mapslices(normal,feats,dims=2)
 
     coords = Tuple.(findall(arr[:,:,1] .!= -9999))
 
@@ -124,13 +126,13 @@ function run_hc(h5path,index)
 
     println("getting distance matrix...")
 
-    subset_ind = sample(eachindex(feats[:,1]),20000,replace=false)
+    subset_ind = sample(eachindex(feats[:,1]),5000,replace=false)
     feats_subset = feats[subset_ind,:]
     println(size(feats_subset))
     subset_coords = coords[subset_ind]
 
     d = pairwise(Euclidean(),transpose(feats_subset))
-
+    println(d==transpose(d))
     clust_result = hclust(d)
 
     dendrogram(clust_result,arr,feats_subset,subset_coords,useheight=true)
