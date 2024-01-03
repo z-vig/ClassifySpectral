@@ -29,7 +29,7 @@ function run_ui(h5path,index)
     ImageUtils.build_specgui(arr,wvl)
 end
 
-function run_kmeans(h5path,index)
+function get_kmeans(h5path,index)
     h5file = h5open(h5path,"r")
     arr = read(h5file[keys(h5file)[index]])
     close(h5file)
@@ -38,37 +38,44 @@ function run_kmeans(h5path,index)
     wvl_str = readlines(open("wvl_data.txt"))
     wvl = map(x->parse(Float64,x),wvl_str)
 
-    smooth_arr,smooth_λ = ClassifySpectral.ImageSmoothing.movingavg(arr,wvl,9)
+    # smooth_arr,smooth_λ = ClassifySpectral.ImageSmoothing.movingavg(arr,wvl,9)
 
     h5file = h5open("Data/gd_region_smoothed.hdf5","w")
     h5file["gamma"] = smooth_arr
     close(h5file)
 
     #ImageUtils.build_specgui(smooth_arr,smooth_λ)
-    # arr_shape = size(smooth_arr)
+    arr_shape = size(arr)
 
-    # flat_arr = reshape(smooth_arr,arr_shape[1]*arr_shape[2],arr_shape[3])
+    flat_arr = reshape(arr,arr_shape[1]*arr_shape[2],arr_shape[3])
 
-    # println("getting distance...")
-    # iter = ProgressBar(1:2)
-    # clust_result_list = []
-    # for i ∈ iter
-    #     subset_ind = sample(1:size(flat_arr)[1],9000,replace=false)
-    #     arr_subset = flat_arr[subset_ind,:]
+    flat_arr = transpose(flat_arr)
+    println(size(flat_arr))
+    R = ClassifySpectral.run_kmeans(flat_arr,3)
 
+    clusters = assignments(R)
+    c = counts(R)
+    println(c)
 
-    #     d = pairwise(Euclidean(),transpose(arr_subset),dims=2)
+    cluster_map = reshape(clusters,arr_shape[1],arr_shape[2])
+    println(size(cluster_map))
 
-    #     clust_result = hclust(d)
-    #     push!(clust_result_list,clust_result)
-    #     set_postfix(iter,Size=size(d))
-    # end
+    f= Figure()
+    ax = GLMakie.Axis(f[1,2])
 
-    # println(size(clust_result_list[1].merges))
+    sl = Slider(f[1,1],horizontal=false, range=range(0,1,1000),startvalue=1)
+
+    alph = lift(sl.value) do x
+        x
+    end
+    image!(ax,arr[:,end:-1:1,1],alpha=1)
+    image!(ax,cluster_map[:,end:-1:1],colormap=[:red,:green,:blue],alpha=alph)
+
+    f
 end
 
 #convert_tifs()
-run_kmeans("Data/gd_region.hdf5",1)
-#run_ui("Data/gd_region.hdf5",1)
+get_kmeans("Data/gd_region.hdf5",1)
+#run_ui("Data/gd_region_smoothed.hdf5",1)
 
 end #time

@@ -37,10 +37,11 @@ function run_PCA(data_matrix::Array{Float64},imshape::Tuple)
     return Cₓ,P,Cᵥ,Y
 end
 
-function run_kmeans(data_matrix::Array{Float32},k::Int64)
+function run_kmeans(data_matrix,k::Int64)
 
     result = kmeans(data_matrix,k)
 
+    return result
 end
 
 
