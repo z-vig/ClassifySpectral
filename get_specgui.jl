@@ -40,9 +40,9 @@ function get_kmeans(h5path,index)
 
     # smooth_arr,smooth_λ = ClassifySpectral.ImageSmoothing.movingavg(arr,wvl,9)
 
-    h5file = h5open("Data/gd_region_smoothed.hdf5","w")
-    h5file["gamma"] = smooth_arr
-    close(h5file)
+    # h5file = h5open("Data/gd_region_smoothed.hdf5","w")
+    # h5file["gamma"] = smooth_arr
+    # close(h5file)
 
     #ImageUtils.build_specgui(smooth_arr,smooth_λ)
     arr_shape = size(arr)
@@ -75,7 +75,7 @@ function get_kmeans(h5path,index)
 end
 
 #convert_tifs()
-get_kmeans("Data/gd_region.hdf5",1)
-#run_ui("Data/gd_region_smoothed.hdf5",1)
+#get_kmeans("Data/gd_region.hdf5",1)
+run_ui("Data/gd_region_smoothed.hdf5",1)
 
 end #time

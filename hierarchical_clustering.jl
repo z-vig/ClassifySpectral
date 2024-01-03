@@ -89,11 +89,12 @@ end
 function run_hc(h5path,index)
     h5file = h5open(h5path,"r")
     arr = read(h5file[keys(h5file)[index]])
-    arr = arr[:,end:-1:1,:]
+    #arr = arr[:,end:-1:1,:]
+    close(h5file)
 
     #Eliminating shadey pixels
-    mean_arr = mean(arr,dims=3)
-    bad_coords = Tuple.(findall(mean_arr.<0.05))
+    std_arr = std(arr,dims=3)
+    bad_coords = Tuple.(findall(std_arr.<0.02))
     bad_imcoords = CartesianIndex.([i[1:2] for i in bad_coords])
     arr[bad_imcoords,:].=-9999
 
@@ -111,7 +112,7 @@ function run_hc(h5path,index)
     # h5file["gamma"] = smooth_arr
     # close(h5file)
     
-    #ImageUtils.build_specgui(smooth_arr,smooth_λ)
+    # #ImageUtils.build_specgui(smooth_arr,smooth_λ)
     arr_shape = size(arr)
     feats = reshape(arr,arr_shape[1]*arr_shape[2],arr_shape[3])
     feats = feats[findall(feats[:,1].!=-9999),:]
@@ -138,7 +139,7 @@ function run_hc(h5path,index)
     dendrogram(clust_result,arr,feats_subset,subset_coords,useheight=true)
     # dendrogram(clust_result_list[2])
 
-    close(h5file)
+    # close(h5file)
 end
 
 function test_hc()
