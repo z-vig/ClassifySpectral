@@ -15,7 +15,6 @@ function convert_tifs()
     dstdir = "Data/gd_region"
 
     ImageUtils.tifdir2hdf5(srcdir,dstdir)
-
 end
 
 function run_ui(h5path,index)
@@ -76,6 +75,6 @@ end
 
 #convert_tifs()
 #get_kmeans("Data/gd_region.hdf5",1)
-run_ui("Data/gd_region_smoothed.hdf5",1)
+run_ui("Data/gd_region_contrem.hdf5",1)
 
 end #time

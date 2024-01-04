@@ -6,8 +6,8 @@ using MultivariateStats
 using Clustering
 using LinearAlgebra
 
-include("ImageUtils.jl")
 include("ImageSmoothing.jl")
+include("ImageUtils.jl")
 
 struct ParamImage
     smooth_rfl::Array{Array{Float32}}
