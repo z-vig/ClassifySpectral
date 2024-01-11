@@ -34,7 +34,7 @@ function treepositions(hc::Hclust; useheight = true, orientation = :vertical)
     end
 end
 
-function dendrogram(h, image, feats, coords; color = :blue, kwargs...)
+function dendrogram(h, show_image, image, feats, coords; color = :blue, kwargs...)
 
     f = Figure()
     ax = GLMakie.Axis(f[1, 2])
@@ -54,11 +54,20 @@ function dendrogram(h, image, feats, coords; color = :blue, kwargs...)
 
     println(size(to_value(cluster_tracker)))
     f1 = Figure()
-    ax1 = GLMakie.Axis(f1[1,1])
-    image!(ax1,image[:,:,1],interpolate=false,colorrange=(0,0.2),lowclip=:red)
-    scatter!(ax1,coords,color=cluster_tracker,colorrange=(0,1),markersize=9)
+    ax1 = GLMakie.Axis(f1[1,2])
+
+    sl = Slider(f1[1,1],horizontal=false, range=range(0,1,1000),startvalue=1)
+
+    alph = lift(sl.value) do x
+        x
+    end
+
+    image!(ax1,show_image[:,:,1],interpolate=false,colorrange=(0,0.2),lowclip=:red)
+    scatter!(ax1,coords,color=cluster_tracker,colorrange=(0,1),markersize=9,alpha=alph)
     
     hlines!(ax,height_tracker,minimum(h.order),maximum(h.order))
+
+
     
     for (x, y) in zip(treepositions(h; kwargs...)...)
         lines!(ax,x, y; color)
@@ -83,20 +92,32 @@ function dendrogram(h, image, feats, coords; color = :blue, kwargs...)
     display(GLMakie.Screen(),f)
     display(GLMakie.Screen(),f1)
     display(GLMakie.Screen(),f2)
+
+    record(f1, "test.mp4"; framerate=10) do io
+        for i = 1:100
+            sleep(0.1)
+            recordframe!(io)
+        end
+    end
 end
 
 
-function run_hc(h5path,index)
+function run_hc(h5path_show,h5path,index)
     h5file = h5open(h5path,"r")
     arr = read(h5file[keys(h5file)[index]])
     #arr = arr[:,end:-1:1,:]
     close(h5file)
 
+    h5file_show = h5open(h5path_show,"r")
+    arr_show = read(h5file_show[keys(h5file_show)[index]])
+    close(h5file_show)
+
     #Eliminating shadey pixels
     std_arr = std(arr,dims=3)
-    bad_coords = Tuple.(findall(std_arr.<0.02))
+    bad_coords = Tuple.(findall(std_arr.>0.07))
     bad_imcoords = CartesianIndex.([i[1:2] for i in bad_coords])
     arr[bad_imcoords,:].=-9999
+    arr_show[bad_imcoords,:].=-9999
 
     #arr = arr[:,end:-1:1,:]
 
@@ -105,7 +126,6 @@ function run_hc(h5path,index)
 
     wvl_str = readlines(open("smoothed_wvl_data.txt"))
     wvl = map(x->parse(Float64,x),wvl_str)
-
 
     # smooth_arr,smooth_λ = ClassifySpectral.ImageSmoothing.movingavg(arr,wvl,9)
     # h5file = h5open("Data/gd_region_smoothed.hdf5","w")
@@ -127,7 +147,7 @@ function run_hc(h5path,index)
 
     println("getting distance matrix...")
 
-    subset_ind = sample(eachindex(feats[:,1]),5000,replace=false)
+    subset_ind = sample(eachindex(feats[:,1]),20000,replace=false)
     feats_subset = feats[subset_ind,:]
     println(size(feats_subset))
     subset_coords = coords[subset_ind]
@@ -136,23 +156,11 @@ function run_hc(h5path,index)
     println(d==transpose(d))
     clust_result = hclust(d)
 
-    dendrogram(clust_result,arr,feats_subset,subset_coords,useheight=true)
+    dendrogram(clust_result,arr_show,arr,feats_subset,subset_coords,useheight=true)
     # dendrogram(clust_result_list[2])
 
     # close(h5file)
 end
 
-function test_hc()
-    iris = Iris()
-    targs = iris.targets
-    feats = iris.features
-
-    feat_arr = Matrix(feats)
-    d = pairwise(Euclidean(),transpose(feat_arr))
-    h = hclust(d)
-
-    dendrogram(h, feats, useheight=true)
-end
-
-run_hc("Data/gd_region_smoothed.hdf5",1)
+run_hc("Data/gd_region_smoothed.hdf5","Data/gd_region_contrem.hdf5",1)
 #test_hc()

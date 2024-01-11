@@ -6,7 +6,7 @@ using MultivariateStats
 using Clustering
 using LinearAlgebra
 
-include("ImageSmoothing.jl")
+include("ImageProcessing.jl")
 include("ImageUtils.jl")
 
 struct ParamImage

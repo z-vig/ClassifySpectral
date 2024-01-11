@@ -11,16 +11,11 @@ using GLMakie
 using StatsBase
 using PolygonOps
 
-function dataloadin(folder_path::String)
-    imgpaths = readdir(folder_path,join=true)
-    imgnames = [i[1:end-4] for i ∈ readdir(folder_path)]
-    all_data::Array{Array{Float32,3}} = []
-    p = Progress(length(imgpaths);desc="Loading TIFF Data...")
-    for i ∈ eachindex(imgpaths)
-        push!(all_data,load(imgpaths[i])["data"])
-        next!(p)
-    end
-    return all_data[2]
+function gethdf5(folder_path::String,index)
+    h5file = h5open(folder_path)
+    i = keys(h5file)[index]
+    arr = read(h5file[i])
+    return arr
 end
 
 function savejld2(folder_path)
@@ -98,8 +93,8 @@ function tifdir2hdf5(srcdir::String,dstdir::String)
     close(h5file)
 end
 
-function build_specgui(arr::Array{Float64,3},wvl_vals::Vector{Float64})
-    im = arr[:,:,100]
+function build_specgui(image_arr::Array{Float32,3},spec_arr::Array{Float32,3},wvl_vals::Vector{Float64})
+    im = image_arr[:,:,200]
     imcoords = vec([[x,y] for x in 1:size(im,1),y in 1:size(im,2)])
     imcoords = hcat([i[1] for i in imcoords],[i[2] for i in imcoords])
 
@@ -132,7 +127,7 @@ function build_specgui(arr::Array{Float64,3},wvl_vals::Vector{Float64})
     end
 
     hist!(ax1,histdata,bins=bin_list,color=clist,colormap=[:transparent,:red],strokewidth=0.1)
-    im = image!(ax_im,im,colorrange=imstretch)
+    im = image!(ax_im,im,colorrange=imstretch,interpolate=false)
 
     pllist = []
     pslist = []
@@ -147,7 +142,7 @@ function build_specgui(arr::Array{Float64,3},wvl_vals::Vector{Float64})
             xpos = Int(round(event.data[1]))
             ypos = Int(round(event.data[2]))
             println("X:$xpos, Y:$ypos")
-            pl = lines!(ax2,wvl_vals,arr[xpos,ypos,:],color=num_spectra,colormap=:tab10,colorrange=(1,10),linestyle=:dash)
+            pl = lines!(ax2,wvl_vals,spec_arr[xpos,ypos,:],color=num_spectra,colormap=:tab10,colorrange=(1,10),linestyle=:dash)
             ps = scatter!(ax_im,xpos,ypos,color=num_spectra,colormap=:tab10,colorrange=(1,10),markersize=5)
     
             push!(pllist,pl)
@@ -217,7 +212,7 @@ function build_specgui(arr::Array{Float64,3},wvl_vals::Vector{Float64})
 
         selected_spectra = zeros(length(selection),239)
         for i in eachindex(selection)
-            selected_spectra[i,:] = arr[selection[i]...,:]
+            selected_spectra[i,:] = spec_arr[selection[i]...,:]
         end
         #println(mean(selected_spectra,dims=1))
         al = lines!(ax2,wvl_vals,vec(mean(selected_spectra,dims=1)),color=area_spectra_num,colormap=:tab10,colorrange=(1,10))
@@ -258,6 +253,8 @@ function build_specgui(arr::Array{Float64,3},wvl_vals::Vector{Float64})
     end
     display(GLMakie.Screen(),f_image)
     display(GLMakie.Screen(),f)
+
+    return f_image,f
 end
 
 end #module ImageUtils
